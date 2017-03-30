@@ -1,0 +1,19 @@
+
+Factions:
+These are the different allegiances in the game world. Their relationship to each other can change over time, though towards the PCs will be most volatile.
+
+'civilisation'
+'wild'
+'bandits'
+'froblins'
+'pc party' - only to be referenced by others. Player chooses interactions towards the others.
+
+Encounter types:
+The formats of random encounter that can be generated.
+
+'combat'
+'event'
+
+d_game.py
+The core module, in which the main game runs.
+It starts by building the world with d_region.py and makes a PC from d_character.py.
