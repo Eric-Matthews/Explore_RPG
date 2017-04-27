@@ -32,7 +32,6 @@ exit_commands = ['exit', 'back', 'quit', 'just let it end', "i'm outta here"]
 sheet_commands = ['me', 'char', 'sheet']
 
 
-
 # Gets the month of the game year from the list.
 def set_month(month_order = ['sun', 'glowshroom', 'crystal', 'shower', 'shadowflame', 'moon', 'cave', 'storm', 'air', 'water', 'fire', 'earth']):
 	new_month = month_order.pop(0)

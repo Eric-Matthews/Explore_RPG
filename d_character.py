@@ -85,7 +85,8 @@ class Inventory(dict):
 		if efficiency == None: efficiency = Inventory.default_efficiency
 		self.max_weight = (str + end) * efficiency
 	
-	def item_add(self, item, quantity):
+	def item_add(self, item, quantity = None):
+		if quantity == None: quantity = 1
 		self.cur_weight += (quantity * item.weight)
 		if item.name.lower() in self:
 			self[item.name.lower()]['quantity'] += quantity
@@ -93,16 +94,17 @@ class Inventory(dict):
 			self[item.name.lower()] = {}
 			self[item.name.lower()]['item'] = item
 			self[item.name.lower()]['quantity'] = quantity
-		print str(self)
+		if __debug__ == False: print "Added {}.".format(item)
 			
 	def item_rem(self, item, quantity = 1):
+		if hasattr(item, 'name'): item = item.name.lower()
 		if item in self:
 			self[item]['quantity'] -= quantity
 			self.cur_weight -= self[item]['item'].weight
 			if self[item]['quantity'] <= 0:
 				del self[item]
 		else: 
-			print str(item) + " not in inventory."
+			print str(item).title() + " not in inventory."
 		
 	def item_use(self, item, user, target):
 	# Check if the item can be used, if so use it and remove from INV.

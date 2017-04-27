@@ -237,7 +237,7 @@ class Region(dict):
 		elif type in ['mountains']: min_density = 3
 		else: min_density = 2
 		# more debug stuff. Prints passed values.
-		if __debug__:
+		if __debug__ == False:
 			print type + ' with min density of ' + str(min_density)
 			print "X: " + str(base_x) + " Y: " + str(base_y)
 			print "#: " + str(quantity) + " in shape: " + shape
@@ -269,8 +269,8 @@ class Region(dict):
 			# Drop any out of map limits genned tiles, then add those that are left to the list to change. 
 			if 0 <= new_coords[0] < self.maxx and 0 <= new_coords[1] < self.maxy: 
 				shaped_list.append(new_coords)
-				if __debug__: print "added " + str(new_coords)
-			elif __debug__: print "didn't add " + str(new_coords)
+				if __debug__ == False: print "added " + str(new_coords)
+			elif __debug__ == False: print "didn't add " + str(new_coords)
 		return shaped_list
 	
 	def make_towns(self):
@@ -283,7 +283,7 @@ class Region(dict):
 			attempts -= 1
 		adjacents = self.get_value_coords(self.collect_adjacents(coords), 'town city')
 		if adjacents != []:
-			if __debug__: print "turning " + str(adjacents) + " to cities"
+			if __debug__ == False: print "turning " + str(adjacents) + " to cities"
 			tile_data = self.retrieve_tile_data('city')
 			if len(adjacents) > 1:
 				name = name_gen()
@@ -292,7 +292,7 @@ class Region(dict):
 		elif adjacents == []:
 			tile_data = self.retrieve_tile_data('town')
 			name = name_gen()
-		if __debug__: print tile_data, coords, adjacents
+		if __debug__ == False: print tile_data, coords, adjacents
 		self.assign_tile_data([coords], *tile_data, name = name)
 		
 		shop_numbers = {'town': (1, 2), 'city': (1,4), 'castle': (0, 2)}
@@ -309,7 +309,7 @@ class Region(dict):
 			
 			
 	def gen_shop(self, coords):
-		if __debug__: print "added SHOP to {}".format(coords)
+		if __debug__ == False: print "added SHOP to {}".format(coords)
 		shop = d_shops.Shop('test_type', 'discount')
 		self[coords]['shops'][shop.name.lower()] = shop
 			
@@ -377,7 +377,7 @@ class Region(dict):
 	def collect_adjacents(self, coords, dist = 1, look_for = 'type'):
 	# Returns surrounding tiles, and their checked property.
 	# Defaults to adjacent tiles, and their terrain type.
-		if __debug__: print "{} looking for adj.s".format(coords)
+		if __debug__ == False: print "{} looking for adj.s".format(coords)
 		base_x, base_y = coords
 		adjacents = {}
 		for i in range(dist * -1, dist + 1):
@@ -503,6 +503,9 @@ class Region(dict):
 			if len(self[self.pc_loc]['shops']) < 1:
 				if self.has_value(self[self.pc_loc]['type'].split(), ['city', 'town', 'castle']) == True: print "For some odd reason there is no open shop in this {}.".format(self[self.pc_loc]['type'])
 				else: print "You search the {} for hours, but are still surprised when you're unable to find any shops.".format(self[self.pc_loc]['type'])
+			# If only one shop in location, go to it automatically.
+			elif len(self[self.pc_loc]['shops']) == 1:
+				random.choice(self[self.pc_loc]['shops'].values()).in_shop(shopper)
 			else:
 			# Otherwise print list of Shops in loc, and player picks one to visit.
 				for shop in self[self.pc_loc]['shops']:

@@ -2,7 +2,7 @@ import random
 # Creates random encounter lists.
 # Base list for each terrain type (taking into account neighbouring tiles), with addition section for elemental affinities.
 import d_toolbox
-import d_character
+import d_character, d_items
 
 
 # Format:
@@ -58,9 +58,9 @@ def get_encounter(coords, region, ele_tuple = (0, 0, 0)):
 	# Pick either the tile on, or an adjacent tile for the encounter to be generated from.
 	if random.randint(0, 4) < 3:
 		terrain = region[coords]['type']
-		if __debug__: print "On tile"
+		if __debug__ == False: print "On tile"
 	else:
-		if __debug__: print "Adjacent tile"
+		if __debug__ == False: print "Adjacent tile"
 		adjacents = region.collect_adjacents(coords)
 		coords = random.choice(adjacents.keys())
 		terrain = adjacents[coords]
@@ -90,6 +90,7 @@ def get_encountered(coords, terrain, region, element):
 				if no_enc == 1: name = new_npc[1]
 				else: name = new_npc[1] + " " + str(i)
 				new_npc = new_npc[0](name = name)
+				new_npc.inv.item_add(d_items.doodad, quantity = random.randint(1, 3))
 				if 'merchant' in name.lower():
 					print "Assigning different speech."
 					new_npc.talk_lines = "This is a test speech, {talker_name}."
