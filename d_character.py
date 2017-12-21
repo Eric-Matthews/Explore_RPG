@@ -34,6 +34,9 @@ class Stat(object):
 				self.cur_value -= p
 			else: self.cur_value += p
 			
+	def get_percent(self):
+		return int((self.cur_value / self.base_value) * 100)
+			
 	def add_modifier(self, mod_type, value):
 	# Adds a modifier of given TYPE to the stat modifier dictionary.
 	# Only WOUNDS is a cumulative TYPE. All others are overwritten.
@@ -85,7 +88,8 @@ class Inventory(dict):
 		if efficiency == None: efficiency = Inventory.default_efficiency
 		self.max_weight = (str + end) * efficiency
 	
-	def item_add(self, item, quantity):
+	def item_add(self, item, quantity = None):
+		if quantity == None: quantity = 1
 		self.cur_weight += (quantity * item.weight)
 		if item.name.lower() in self:
 			self[item.name.lower()]['quantity'] += quantity
@@ -93,16 +97,17 @@ class Inventory(dict):
 			self[item.name.lower()] = {}
 			self[item.name.lower()]['item'] = item
 			self[item.name.lower()]['quantity'] = quantity
-		print str(self)
+		if __debug__ == False: print "Added {}.".format(item)
 			
 	def item_rem(self, item, quantity = 1):
+		if hasattr(item, 'name'): item = item.name.lower()
 		if item in self:
 			self[item]['quantity'] -= quantity
 			self.cur_weight -= self[item]['item'].weight
 			if self[item]['quantity'] <= 0:
 				del self[item]
 		else: 
-			print str(item) + " not in inventory."
+			print str(item).title() + " not in inventory."
 		
 	def item_use(self, item, user, target):
 	# Check if the item can be used, if so use it and remove from INV.
@@ -190,7 +195,13 @@ class Character(object):
 				if stat_mods.items() > 0:
 					for k, p in stat_mods.items():
 						print k.capitalize() +': ' + str(p)
-						
+	
+	def get_stat(self, stat):
+		if hasattr(self, stat):
+			return int(getattr(self, stat))
+		else:
+			return "No stat"
+	
 	def stat_change(self, stat, mod_type, value):
 		# apply a MOD_TYPE modifier of VALUE to stat STAT.
 		getattr(self, stat).add_modifier(mod_type, value)
@@ -202,6 +213,23 @@ class Character(object):
 		if value < 0: heal_take = 'heal'
 		else: heal_take = 'take'
 		print "{} {}s {} damage".format(self.name, heal_take, int(maths.sqrt(value**2)))
+	
+	
+	# Code to be executed when CHAR dies.
+	def killed(self, killer, loot):
+		'Code that runs when a CHAR dies, updating their PARTY\'s HOSTILITY{}, ACTIVES[], and COMBAT()de LOOT[] data.'
+		self.party.actives.remove(self)
+		if self.party.faction in d_toolbox.factions_with_memory:
+			d_toolbox.faction_relations[self.party.faction][killer.party.faction] -= 10
+		if killer.party.name in self.party.hostility: 
+			self.party.hostility[killer.party.name][0] += 10
+		else: self.party.hostility[killer.party.name] = [20, killer.party]
+		for item in self.inv:
+			dropped_item = self.inv[item]['item']
+			dropped_quan = self.inv[item]['quantity']
+			loot.append((dropped_item, dropped_quan))
+		if __debug__ == False:
+			print loot
 	
 	def work_out_damage(self, value, element):
 		if element in self.elemental_resz:

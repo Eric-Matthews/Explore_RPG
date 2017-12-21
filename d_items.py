@@ -6,6 +6,7 @@ class Item(object):
 	stock_min_max = (2, 4)
 
 	def __init__(self, display_name, weight, price, actions = None, effects = {}, element = None):
+		if actions == None: actions = []
 		self.name = display_name
 		self.weight = weight
 		self.price = price
@@ -41,9 +42,9 @@ class Equipment(Item):
 		for slot in self.effects['equip']['slots']:
 			if equipee.equipment_slots[slot] != None:
 				equipee.equipment_slots[slot].unequip(equipee)
-			equipee.inv.item_rem(self.name.title())
 			equipee.equipment_slots[slot] = self
 			self.quantity = 1
+		equipee.inv.item_rem(self.name.lower())
 		if 'passive' in self.effects['equip']:
 			# Code to add passive bonuses here.
 			"""for k, v in passive: if k == armour equipee.armour += v"""
@@ -116,3 +117,4 @@ class Healing_Potion(Potion):
 
 mod_heal_potion = Healing_Potion('Blue Potion', 0.1, 10, '4d4+2')
 test_sword = Weapon('Training Sword', 5, 20, '3d2+1')
+doodad = Item('Thing-a-ma-bug', 1, 42) 

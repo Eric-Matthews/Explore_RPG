@@ -31,7 +31,7 @@ class Party(object):
 	
 	
 	# Code to be executed each time a party member hits 0hp.
-	def member_killed(self, killed, killer):
+	def member_killed(self, killed, killer, loot):
 		'Code that runs when a member of the party dies, adjusting HOSTILITY{} and ACTIVE properties.'
 		self.actives -= 1
 		if killed.party.faction in d_toolbox.factions_with_memory:
@@ -39,6 +39,13 @@ class Party(object):
 		if killer.party.name in self.hostility: 
 			self.hostility[killer.party.name][0] += 10
 		else: self.hostility[killer.party.name] = [20, killer.party]
+		for item in killed.inv:
+			dropped_item = killed.inv[item]['item']
+			dropped_quan = killed.inv[item]['quantity']
+			loot.append((dropped_item, dropped_quan))
+		if __debug__ == False:
+			print loot
+		
 	
 	
 	def check_actives(self):
@@ -52,7 +59,7 @@ class Party(object):
 	def get_team_name(self, party):
 		team_name = ''
 		if len(party) == 1: team_name = party[0].name.title()
-		elif len(party) > 2: team_name = party[0].name.title() + " & friends"
+		elif len(party) > 2: team_name = party[0].name.title() + " & {} friends".format(len(party) - 1)
 		else:
 			for member in party:
 				team_name = team_name + member.name.title() + " & "
@@ -67,7 +74,7 @@ def get_speed(item):
 # returns the party with the most aggro against the specified character's party.
 def get_most_hated_party(char):
 	i = 0
-	most_hated = sorted(char.party.hostility.values(), key = lambda entry: entry[1])
+	most_hated = sorted(char.party.hostility.values(), key = lambda entry: entry[0])
 	while most_hated[i][1].actives < 1 or most_hated[i][1] == char.party:
 		i += 1
 		if i >= len(char.party.hostility):
@@ -111,13 +118,14 @@ def fight(terrain, pc_party, npc_parties):
 		return party.actives
 	
 	# Checks Party[] to see if any NPCs hostile to the PCs are still active.
-	def npcs_hostile(parties):
+	def npcs_hostile(parties, hostile_to = None):
+		if hostile_to == None: faction, name = ('pcs', 'pc_party')
 		hostile_npcs = False
 		for party in parties:
 			cur_party = parties[party]
-			if cur_party.faction != 'pcs':
+			if cur_party.faction != faction:
 				if bool(party_active(cur_party)) == True:
-					if cur_party.hostility['pc_party'][0] > 0:
+					if cur_party.hostility[name][0] > 0:
 						hostile_npcs = True
 		return hostile_npcs			
 	
@@ -136,15 +144,20 @@ def fight(terrain, pc_party, npc_parties):
 	
 	# Attack another Char in the fight using ability ACTION.
 	# Takes ACTION as parameter so that many offensive abilities can use this routine to be executed.
-	def do_attack(char, action, target = None):
+	def do_attack(char, action, target = None, parties = None):
 		if target != None: target = check_is_combatant(target)
-		if target == None: target = random_opponent(char)
+		
+		if npcs_hostile(parties) == True and target == None:
+			print "There are no hostile beings around. You decide not to attack randomly."
+			return
+		elif target == None: target = random_opponent(char)
+		if __debug__: print target, int(target.hp)
 		
 		print "{} attacks {}!".format(char.name, target.name)
 		damage = char.abilities[action.upper()].use_ability(char, target)
 		target.party.hostility[char.party.name][0] += damage
 		if int(target.hp) < 1:
-			target.party.member_killed(target, char)
+			target.party.member_killed(target, char, loot)
 			char.kills += 1
 			dead.append(target)
 			print "{} has slain {}!".format(char.name, target.name)
@@ -184,10 +197,10 @@ def fight(terrain, pc_party, npc_parties):
 		if do_not_loop == False: active_char.inv.print_inv()
 		while do_not_loop == False:
 			print "Use which item?"
-			item = raw_input('> ').title()
-			if item.lower() in ['no', 'stop', 'exit', 'quit', 'back']:
+			item = raw_input('> ').lower()
+			if item in ['no', 'stop', 'exit', 'quit', 'back']:
 				do_not_loop = True
-			elif item in ['Inv', 'Print', 'Show']:
+			elif item in ['inv', 'print', 'show']:
 				active_char.inv.print_inv()
 			elif item == 'Help':
 				print "\n Type an item name to use it. INV displays your inventory."
@@ -262,8 +275,10 @@ def fight(terrain, pc_party, npc_parties):
 	combatants.sort(key = get_speed, reverse = True)
 	hostile_npcs = npcs_hostile(parties)
 	active_pcs = bool(party_active(parties['pc_party']))
-	moved = False
+	combat_on = True
 	dead = []
+	
+	loot = []
 	
 	"""Terrain modifying the battle! Coming soon."""
 	if terrain:
@@ -272,7 +287,7 @@ def fight(terrain, pc_party, npc_parties):
 	# The main FIGHT loop.
 	# Starts with a "splash screen" to mark the start of the fight and give the player some information.
 	print fight_splash(parties)
-	while active_pcs == True and (hostile_npcs == True or moved == False) == True:
+	while combat_on == True:
 		for char in combatants:
 			# Give Characters CTG if they not have one, which is filled by SPD each round. Once enough is stored it can be spent to use Abilities in combat.
 			if hasattr(char, 'ctg') == False: char.ctg = int(char.spd)
@@ -284,11 +299,10 @@ def fight(terrain, pc_party, npc_parties):
 				# Check if active Character is a PC. If so, take PC commands.
 				if char in parties['pc_party'].chars:
 					action, target = get_player_input(char)
-					moved = True
 					# Call the valid Char commands.
 					# FLEE is special, as it breaks combat.
 					if action == 'attack':
-						do_attack(char, action, target)
+						do_attack(char, action, target, parties)
 					elif action == 'talk':
 						do_talk(char, target)
 					elif action == 'inv':
@@ -298,10 +312,10 @@ def fight(terrain, pc_party, npc_parties):
 					elif action == 'flee':	
 						try_flee(char)
 						active_pcs = party_active(parties['pc_party'])
-						return active_pcs
+						combat_on == False
 				
 				# If not a PC, do this stuff instead.
-				else: do_attack(char, 'ATTACK')
+				else: do_attack(char, 'ATTACK', parties = parties)
 		
 		# End of round combat TICKs and clean up.
 		# Recheck booleans and make sure everything is tickety boo.
@@ -316,13 +330,13 @@ def fight(terrain, pc_party, npc_parties):
 		hostile_npcs = npcs_hostile(parties)
 		active_pcs = party_active(parties['pc_party'])
 	
-	if active_pcs: 
+	if active_pcs:
 	 if len(dead) > 0: print "Enemies defeated, {} returns to their journey.".format(parties['pc_party'].disp_name)
 	 else: print "{} returns to their journey.".format(parties['pc_party'].disp_name)
 	else: print "{} has been slain.".format(parties['pc_party'].disp_name)
 	print "\n"
 	
-	if __debug__:
+	if __debug__ == False:
 		for faction in d_toolbox.faction_relations.values(): print faction
 	
 	# Destroy all parties, to make sure memory is saved.
