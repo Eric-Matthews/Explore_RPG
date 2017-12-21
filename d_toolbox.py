@@ -63,7 +63,7 @@ def check_is_move(to_check, specific = None):
 	'move_nw': ["nw", "north west", "wn", "west north"],
 	'move_se': ["se", "south east", "es", "east south"],
 	'move_sw': ["sw", "south west", "ws", "west south"]}
-	# list to be filled with directions looked for
+	# list to be filled with direction commands found
 	valids = []
 	if specific:
 		specifics = specific.split()
