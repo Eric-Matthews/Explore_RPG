@@ -1,7 +1,7 @@
 import random
 import copy
 
-import d_toolbox
+import d_toolbox, d_name_gen
 from d_items import mod_heal_potion, test_sword
 
 potion = mod_heal_potion
@@ -29,12 +29,10 @@ class Shop(object):
 
 	def __init__(self, stock_type, value_type, name = None, keeper = None):
 		if name == None:
-			name = 'gen_these'
+			name = (random.choice(['dynamic', 'sellout', 'item', 'adventure', 'wonderful', 'overloaded', 'no bad items', 'fair price', 'marvellous']) + " " + random.choice(['shop', 'emporium', 'market', 'sale', 'mongery', 'dealer'])).title() 
 		if keeper == None:
-			keeper = 'Genned Keeper'
-		
-		if __name__ == '__main__':
-			debug = True
+			keeper = d_name_gen.person_name_gen()
+			
 		
 		self.name = name
 		self.keeper = keeper
@@ -59,10 +57,10 @@ class Shop(object):
 		self.purchase_limit = int(type(self).value_data[value_type]['purchase_limit'] * (random.randint(80, 121) / 100.0))
 		adjust = random.randint(8, 12) / 10.0
 		self.mark_up = type(self).value_data[value_type]['mark_up'] * adjust
-		if __name__ == '__main__' and __debug__ == True: print "{} x {} = {}".format(type(self).value_data[value_type]['mark_up'], adjust, self.mark_up)
+		if __name__ == '__main__' and __debug__ == False: print "{} x {} = {}".format(type(self).value_data[value_type]['mark_up'], adjust, self.mark_up)
 		adjust = random.randint(8, 12) / 10.0
 		self.mark_down = type(self).value_data[value_type]['mark_down'] * adjust
-		if __name__ == '__main__' and __debug__ == True: print "{} x {} = {}".format(type(self).value_data[value_type]['mark_down'], adjust, self.mark_down)
+		if __name__ == '__main__' and __debug__ == False: print "{} x {} = {}".format(type(self).value_data[value_type]['mark_down'], adjust, self.mark_down)
 		
 		self.stock_gen = 33
 		self.base_stock = self.get_base_stock(stock_type, value_type)
@@ -163,13 +161,14 @@ class Shop(object):
 		else: item_price_mod = stock_entry['price_mod']
 		# Then work out the actual value of the item, capped for buying at the shop purchase_limit.
 		value = stock_entry['item'].price * item_price_mod
-		if __name__ == '__main__' and __debug__ == True: print "{} changed to {}".format(stock_entry['item'].price, value)
+		if __name__ == '__main__' and __debug__ == False: print "{} changed to {}".format(stock_entry['item'].price, value)
 		if mode == 'buy_from' and value > self.purchase_limit:
 			value = self.purchase_limit
 		return int(value)
 		
 	
 	def in_shop(self, shopper):
+		print "You enter {}.".format(self.name.title())
 		if self.like_pc > 0: shop = True
 		else: shop = False
 		print self.hello_speak(self, shopper)
@@ -193,7 +192,7 @@ class Shop(object):
 				self.like_pc -= 10
 			elif input == "help":
 				print "You're certain there's some way to make this any more clear?"
-				print "Because neither I, nor {}, can think of one.".format(self.name)
+				print "Because neither I, nor {}, can think of one.".format(self.keeper)
 				print "It's not as if you're not using the keyboard or anything..."
 			elif __name__ == '__main__' and __debug__ == True and input == "details":
 				print "{up} mark up, {down} mark down".format(up = self.mark_up, down = self.mark_down)
@@ -219,7 +218,7 @@ class Shop(object):
 				if shopper.inv.gold >= item_cost:
 					print "Bought {}.".format(input.title())
 					shopper.inv.gold -= item_cost
-					shopper.inv.item_add(self.stock[input]['item'], 1)
+					shopper.inv.item_add(self.stock[input]['item'], quantity = 1)
 					self.rem_stock(input)
 					self.like_pc += 1
 					print self.buying_speak(self, shopper)
@@ -277,7 +276,7 @@ if __name__ == '__main__':
 	vending_machine.actions.remove('talk')
 	print test_shop.name
 	pc = d_character.Character()
-	pc.inv.item_add(potion, 3)
+	pc.inv.item_add(potion, quantity = 3)
 	pc.inv.gold = 400
 	
 	test_shop.in_shop(pc)

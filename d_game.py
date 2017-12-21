@@ -53,8 +53,8 @@ def game():
 	else:
 		name = "Testian"
 		settings = (8, 8, 5, 'plains', 'Castle')
-		pc.inv.item_add(mod_heal_potion, 1)
-		pc.inv.item_add(test_sword, 1)
+		pc.inv.item_add(mod_heal_potion, quantity = 1)
+		pc.inv.item_add(test_sword, quantity = 1)
 	pc.inv.print_inv()
 	pc.helps = 0
 	pc.is_pc = True
@@ -66,7 +66,8 @@ def game():
 	world.print_map(world.pc_loc)
 	print world.pc_loc
 	
-	print "Good luck, %s. Type HELP for help." % pc.name
+	print "Good luck, %s. Commands are listed\n within the [] below.\nYou can also type HELP for help." % pc.name
+	print ['INV'] + world[world.pc_loc]['actions']
 	
 	# Main game loop.
 	while game_on == True:
@@ -99,7 +100,7 @@ def game():
 			#	pc.inv[input[1]].equip()
 			
 			# Print underlying map data.
-			elif input[0] == 'print' and __debug__ == True:
+			elif input[0] == 'print' and __debug__ == False:
 				if input[1].split(None, 1)[0] == 'map':
 					world.print_map_data()
 				elif input[1] in ['char', 'me', 'sheet']:
@@ -117,7 +118,7 @@ def game():
 					pc.do_rest(30)
 				elif input[0] == 'look' and input[1] == None:
 					input[1] = world[world.pc_loc]
-					if __debug__ == True: do_verbs.look(input[0], input[1])
+					if __debug__ == False: do_verbs.look(input[0], input[1])
 					print world[world.pc_loc]['long desc']
 				elif input[0] == 'talk':
 					if len(input) < 2:
@@ -138,7 +139,7 @@ def game():
 					input[1] = world[world.pc_loc]
 				elif input[0] == 'look' and input[1] == None:
 					input[1] = world[world.pc_loc]
-				if __debug__: print input[0], input[1]
+				if __debug__ == False: print input[0], input[1]
 				to_print, new_day = getattr(do_verbs, input[0])(pc, input[1])
 				print to_print
 			else: print "{}? I don't think that's a good idea.".format(input)
@@ -147,7 +148,7 @@ def game():
 			if new_day == True:
 				if randint(0, 99) < world[world.pc_loc]['encounter rate']:
 					enc_type, encountered = d_gen_enc_table.get_encounter(world.pc_loc, world)
-					if __debug__ == True: print enc_type, encountered
+					if __debug__ == False: print enc_type, encountered
 					
 					if enc_type == 'combat': 
 						alive = d_combat.fight(world[world.pc_loc]['type'], pc_party, encountered)
@@ -172,7 +173,7 @@ def game():
 			# A brief description, and what actions the PC can do here.
 			print "Day {} of {}.".format(day, month.title())
 			print world[world.pc_loc]['short desc']
-			print world[world.pc_loc]['actions']
+			print ['INV'] + world[world.pc_loc]['actions']
 
 if __name__ == '__main__':
 	game()
