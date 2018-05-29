@@ -37,7 +37,7 @@ class Tile():
     def __str__(self):
         if self.explored == True: explord = 'explored'
         else: explord = 'unexplored'
-        return explord + " {faction} {terrain}. \nShops: {shops},\nChars:{chars}".format(faction = self.faction, terrain = self.terrain, shops = self.shops, chars = self.people)
+        return explord + " {faction} {terrain}. \nShops: {shops}\nChars:{chars}".format(faction = self.faction, terrain = self.terrain, shops = self.shops, chars = self.people)
 
 
 
@@ -97,7 +97,11 @@ class Map(dict):
 
     def make_towns(self):
         coords = self.rand_coords()
-        self[coords] = Tile("town")
+        faction = "civilisation"
+        no_shops = 1 + random.choice([0, 0, 1, 1, 2])
+        shops = []
+        for i in range(0, no_shops): shops.append(toolbox.gen_shop(faction))
+        self[coords] = Tile("town", faction = faction, shops = shops)
 
     def rand_coords(self):
         return toolbox.randint(0, self.max_x), toolbox.randint(0, self.max_y)
@@ -116,7 +120,7 @@ class Map(dict):
             print("wrong move")
             return False
         else:
-            print("move works")
+            # print("move works")
             return new_loc
 
     def move_pc(self, new_loc):
@@ -142,7 +146,7 @@ class Map(dict):
     def collect_adjacents(self, coords, dist = 1):
         "Returns a dictionary of TILE COORDS a DISTance away."
         "Defaults to returning adjacent TILES."
-        if __debug__ == False: print ("{} looking for adj.s".format(coords))
+        if __debug__: print ("{} looking for adjs!".format(coords))
         base_x, base_y = coords
         adjacents = {}
         for i in range(dist * -1, dist + 1):
@@ -169,10 +173,10 @@ class Map(dict):
         elif 0 + centre_mod >= pc_y: from_y = 0
         else: from_y = pc_y - centre_mod
 
-        print("PC X: {}, PC Y: {}".format(pc_x, pc_y))
-        print(self.max_x - centre_mod)
-        print(self.max_y - centre_mod)
-        print("From X: {}, From Y: {}".format(from_x, from_y))
+        if __debug__: print("PC X: {}, PC Y: {}".format(pc_x, pc_y))
+        # print(self.max_x - centre_mod)
+        # print(self.max_y - centre_mod)
+        if __debug__: print("From X: {}, From Y: {}".format(from_x, from_y))
 
         to_print = []
         for i in range(from_y, from_y + disp_size):

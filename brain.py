@@ -27,8 +27,10 @@ if __name__ == '__main__':
             move = (move[0], move[1])
 
             move_check = the_world.check_valid_move(move)
-            print(move_check)
-            if move_check: the_world.move_pc(move_check)
+            if __debug__: print(move_check)
+            if move_check:
+                the_world.move_pc(move_check)
+
         elif __debug__ == True and command == 'reveal':
             for tile in the_world:
                 the_world[tile].explored = True

@@ -13,3 +13,7 @@ class Item():
         if disp_name:
             self.name = disp_name
         else: self.name = name
+
+
+    def __str__(self):
+        return "#{ui} - {name}".format(ui = self.ui, name = self.name)

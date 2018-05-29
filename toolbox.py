@@ -1,4 +1,4 @@
-import random, character
+import random, character, new_shops, factions
 
 
 quit_options = ["quit", "exit", "leave"]
@@ -71,7 +71,7 @@ def add_chars_maybe_list(maybe_list, target_list):
         for char in maybe_list: target_list.append(char)
 
 def randint(lower, maximum):
-    # Because the heckery with RANGE and RANDOM.RANDINT being a mix of inclusive and exclusive.
+    # Because the heckery with RANGE and RANDOM.RANDINT being a mix of inclusive and exclusive. Excludes MAXIMUM from being returned.
     return random.randint(lower, maximum - 1)
 
 def shaper(shape, length, width, density):
@@ -99,5 +99,11 @@ def shaper(shape, length, width, density):
                 if shape in ['-', '=', '/', '//']:
                     coord_x, coord_y = coord_b, coord_a
                 shaped_list.append((coord_x, coord_y))
-    if __debug__ == True: print(shaped_list)
+    # if __debug__: print(shaped_list)
     return shaped_list
+
+def gen_shop(faction = None):
+    if faction:
+        faction = factions.faction_check(faction)
+    stock_type = random.choice(['discount', 'rip_off', 'high_end', 'luxury'])
+    return new_shops.Shop("test_type", stock_type, faction = faction)

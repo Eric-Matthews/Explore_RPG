@@ -5,12 +5,25 @@ class Inventory(dict):
         self.owner = owner
         self.bags = bags
         self.gold = gold
+        self.max_gold = False
 
         if contents:
             for entry in contents:
                 thing = entry[0]
                 self[thing.ui] = {"item": thing, "quantity": entry[1]}
 
+
+    def add_gold(self, gold, secret = False):
+        self.gold += gold
+        if self.max_gold and self.gold > self.max_gold: self.gold = self.max_gold
+        if secret == False:
+            print("Gained {}g. Total: {}g.".format(gold, self.gold))
+
+    def rem_gold(self, gold, secret = False):
+        self.gold -= gold
+        if self.gold < 0: self.gold = 0
+        if secret == False:
+            print("Lost {}g. Total: {}g.".format(gold, self.gold))
 
     def add_item(self, new_item, quantity, visible = True):
         if new_item.ui in self:

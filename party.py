@@ -19,7 +19,7 @@ class Party():
         self.name = self.members[0].name
         self.species = self.members[0].species
 
-        self.senses = {'sight': {'range': 22}}
+        self.senses = {'sight': {'range': 2}}
         self.inv = inventory.Inventory(self)
 
     def __str__(self):

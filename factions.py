@@ -40,7 +40,7 @@ class Civilisation(Faction):
     "Factions for the city builders and industrialists. They seek to reshape the world to suit their needs."
     rep_type = "civ"
     default_type_relations = {"civ": 125, "bandit": 80, "wild": 75, "monster": 0, "pc": 110}
-    type_titles = {"boss": ("king", "queen"), "second": ("duke", "duchess"), "local": ("mayor"), "group": ("sir", "siress"), "bottom": ("squire"), "free": ("librarian")}
+    type_titles = {"boss": ("king", "queen"), "second": ("lord", "lady"), "local": ("mayor"), "group": ("sir", "sel"), "bottom": ("squire"), "free": ("librarian")}
 
 class Bandit(Faction):
     "Factions for those who use whatever they have to survive in the world. Their only goal is to make their lives as good as possible."
@@ -58,4 +58,10 @@ class Monster(Faction):
     "These factions seek little but the destruction of others. They revel in causing harm, by whichever means most appeal."
     rep_type = "monster"
     default_type_relations = {"civ": 20, "bandit": 30, "wild": 30, "monster": 90, "pc": 25}
-    type_titles = {"boss": ("the deomonic"), "second": ("terrible"), "local": ("monstrous"), "group": ("beast"), "bottom": ("vile"), "free": ("the scourge")}
+    type_titles = {"boss": ("the deamonic"), "second": ("terrible"), "local": ("monstrous"), "group": ("beast"), "bottom": ("vile"), "free": ("the scourge")}
+
+
+def faction_check(faction_name):
+    for faction in Faction.factions_list:
+        if faction.name == faction_name: return faction
+    else: return None

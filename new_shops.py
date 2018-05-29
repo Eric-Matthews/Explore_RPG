@@ -46,6 +46,9 @@ class Shop(object):
         self.nonsense_lines = ["I don't know what you mean.", "Beware the Jabberwocky {species}."]
         self.hate_lines = ["This is a local shop, for local people. There's nothing for you here.", "Get lost stranger.",
                            "Beat it, wannabe thief."]
+        self.no_money_lines = ["You don't have enough money.", "Out of cash, stranger."]
+        self.selling_lines = ["What're ya buying?", "See anything you like {species}?"]
+        self.buying_lines = ["What're ya selling?", "Got a little something for me?"]
 
         # Gives the individual shops a slightly random set of monetery variables, to keep things more interesting.
         # And stops players being able to work out the shop value types as easily.
@@ -65,6 +68,9 @@ class Shop(object):
         self.stock = {}
         self.gen_stock()
 
+
+    def __str__(self):
+        return "{}: a {} aligned {} {} shop".format(self.name, self.faction, self.value_type, self.stock_type)
 
     # Returns the base list of items the shop type can sell.
     # Gets list of all items for stock_type, and then removes items outside the price range of the shop, from value_type.
@@ -114,6 +120,9 @@ class Shop(object):
             elif situation == "sell": lines = self.sell_lines
             elif situation == "buy": lines = self.buy_lines
             elif situation == "oostock": lines = self.oostock_lines
+            elif situation == "no_money": lines = self.no_money_lines
+            elif situation == "buying": lines = self.buying_lines
+            elif situation == "selling": lines = self.selling_lines
             else: lines = self.nonsense_lines
         return random.choice(lines).format(name = talker.name, species = talker.species)
 
@@ -166,7 +175,7 @@ class Shop(object):
             choice = index[int(choice)]["item"]
         elif choice in toolbox.quit_options:
             pass
-        elif choice in ["buy", "talk"]:
+        elif choice in ["sell", "buy", "talk"]:
             pass
         else:
             print("No idea what that is.")
@@ -188,7 +197,7 @@ class Shop(object):
             price = stock_entry.value * price_mod
         else: price = stock_entry['item'].value * price_mod
         if __name__ == '__main__' and __debug__ == True:
-            print("value of {} adjusted to {}".format(stock_entry['item'].value, price))
+            print("value of {} adjusted to {}".format(int(price / price_mod), price))
         if mode == 'pc_sell' and price > self.purchase_limit:
             price = self.purchase_limit
         return int(price)
@@ -232,7 +241,7 @@ class Shop(object):
 
 
     def pc_selling(self, shopper):
-        print(self.talk(shopper, "buy"))
+        print(self.talk(shopper, "buying"))
         selling = True
         while selling == True:
             print("\n")
@@ -247,11 +256,14 @@ class Shop(object):
                 return self.pc_buying(shopper)
             elif user_choice == 'talk':
                 print(self.talk(shopper, "talk"))
-            elif user_choice in shopper.inv:
-                raise "sell stuff"
+            elif hasattr(user_choice, "ui") and user_choice.ui in shopper.inv:
+                print(self.talk(shopper, "buy"))
+                shopper.inv.add_gold(self.get_price(user_choice, "pc_sell"))
+                shopper.inv.rem_item(user_choice)
+
 
     def pc_buying(self, shopper):
-        print(self.talk(shopper, "sell"))
+        print(self.talk(shopper, "selling"))
         buying = True
         while buying == True:
             print("\n")
@@ -266,8 +278,16 @@ class Shop(object):
                 return self.pc_selling(shopper)
             elif user_choice == "talk":
                 print(self.talk(shopper, "talk"))
-            elif user_choice in self.stock:
-                raise "buy stuff"
+            elif hasattr(user_choice, "ui") and user_choice.ui in self.stock:
+                price = self.get_price(user_choice, "pc_buy")
+                if price > shopper.inv.gold:
+                    print(self.talk(shopper, "no_money"))
+                else:
+                    print(self.talk(shopper, "sell"))
+                    shopper.inv.rem_gold(price)
+                    self.rem_stock(user_choice)
+                    shopper.inv.add_item(user_choice, 1)
+
 
 
 if __name__ == '__main__':
